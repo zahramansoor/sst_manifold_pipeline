@@ -12,6 +12,10 @@
 
 %Allows you to select multiple sbx files, splits out planes to tifs.
 clear all; close all;
+%ZD added for her computer on 20230215
+javaaddpath 'C:\Program Files\MATLAB\R2021b\java\mij.jar'
+javaaddpath 'C:\Program Files\MATLAB\R2021b\java\ij.jar'
+
 num_files=input('Enter number of files to run:');
 % Fs=input('Frame Rate? ');
 % num_files=1;
