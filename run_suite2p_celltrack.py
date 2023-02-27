@@ -7,7 +7,7 @@ Created on Fri Feb 24 15:45:37 2023
 
 
 
-import os, sys, shutil
+import os, sys, shutil, suite2p
 import argparse   
 import pandas as pd, numpy as np
 from utils.utils import makedir
@@ -19,34 +19,65 @@ def main(**args):
     params = fill_params(**args)    
     
     if args["stepid"] == 0:
-        #######################################CHECK TO MAKE SURE FILES ARE TRANSFERRED######################################################
+        #######################################MAKE FOLDERS######################################################
 
         #check to see if day directory exists
-        if not os.path.exists(params["mouse_name"], params["day"]): 
+        if not os.path.exists(os.path.join(params["datadir"],params["mouse_name"], params["day"])): 
             print(f"Folder for day {params['day']} of mouse {params['mouse_name']} does not exist. \n\
                   Making folders...")
-            makedir(params["mouse_name"], params["day"])
+            makedir(os.path.join(params["datadir"],params["mouse_name"], params["day"]))
             #behavior folder
-            makedir(params["mouse_name"], params["day"], "behavior")
-            makedir(params["mouse_name"], params["day"], "behavior", "vr")
-            makedir(params["mouse_name"], params["day"], "behavior", "clampex")
+            makedir(os.path.join(params["datadir"],params["mouse_name"], params["day"], "behavior"))
+            makedir(os.path.join(params["datadir"],params["mouse_name"], params["day"], "behavior", "vr"))
+            makedir(os.path.join(params["datadir"],params["mouse_name"], params["day"], "behavior", "clampex"))
+            #camera 
         
     	
-        
-            
     elif args["stepid"] == 1:
-        #######################################PRE-PROCESSING FOR CNN INPUT --> PATCHING###################################################
+        #######################################CHECK TO SEE IF FILES ARE TRANSFERRED AND MAKE TIFS###################################################
         
-        #generate memmap array of patches
-        patch_dst = generate_patch(**params)
-        sys.stdout.write("\nmade patches in {}\n".format(patch_dst)); sys.stdout.flush()
+        #check to see if imaging files are transferred
+        imagingfl=[xx for xx in os.listdir(os.path.join(params["datadir"],
+                                        params["mouse_name"], params["day"])) if "000" in xx][0]
+        imagingflnm=os.path.join(params["datadir"], params["mouse_name"], params["day"], imagingfl)
+        sbxfl=[os.path.join(imagingfl,xx) for xx in os.listdir(imagingflnm) if "sbx" in xx]
+        if len(imagingfl)==1:
+            #convert sbx to tif
+            import matlab.engine
+            eng = matlab.engine.start_matlab()
+            eng.loadVideoTiffNoSplit_EH2_new_sbx_uint16(imagingflnm,sbxfl,"bi new") #bi new=scan type
         
     elif args["stepid"] == 11:
-        #######################################CHECK TO SEE WHETHER PATCHING WAS SUCCESSFUL###################################################
+        #######################################RUN SUITE2P###################################################
         
-        #run checker
-        check_patchlist_length_equals_patches(**params)
-        sys.stdout.write("\nready for inference!"); sys.stdout.flush()
+        #check to see if imaging files are transferred
+        imagingfl=[xx for xx in os.listdir(os.path.join(params["datadir"],
+                                        params["mouse_name"], params["day"])) if "000" in xx][0]
+        if len(imagingfl)==1:           
+            #do suite2p
+            # set your options for running
+            ops = suite2p.default_ops() # populates ops with the default options
+            #edit ops if needed
+            ops["reg_tif"]=True
+            ops["nplanes"]=1
+            ops["delete_bin"]=False
+            ops["move_bin"]=False
+            
+            # provide an h5 path in 'h5py' or a tiff path in 'data_path'
+            # db overwrites any ops (allows for experiment specific settings)
+            db = {
+                  'h5py': [], # a single h5 file path
+                  'h5py_key': 'data',
+                  'look_one_level_down': False, # whether to look in ALL subfolders when searching for tiffs
+                  'data_path': [os.path.join(params["datadir"], params["mouse_name"], params["day"], imagingfl)], # a list of folders with tiffs 
+                                                         # (or folder of folders with tiffs if look_one_level_down is True, or subfolders is not empty)
+                                                       
+                  'subfolders': [], # choose subfolders of 'data_path' to look in (optional)
+                  # 'fast_disk': 'C:/BIN', # string which specifies where the binary file will be stored (should be an SSD)
+                }
+
+        # run one experiment
+        opsEnd = suite2p.run_s2p(ops=ops, db=db)
 
     elif args["stepid"] == 21:
         ####################################POST CNN --> INITIALISING RECONSTRUCTED ARRAY FOR ARRAY JOB####################################
