@@ -5,8 +5,6 @@ Created on Fri Feb 24 15:45:37 2023
 @author: Han
 """
 
-
-
 import os, sys, shutil, suite2p, tifffile
 import argparse   
 import pandas as pd, numpy as np
@@ -35,17 +33,24 @@ def main(**args):
     	
     elif args["stepid"] == 1:
         ####CHECK TO SEE IF FILES ARE TRANSFERRED AND MAKE TIFS/RUN SUITE2P####
+        #args should be the info you need to specify the params
+        # for a given experiment, but only params should be used below
+        params = fill_params(**args) 
         
+        print(params)
         #check to see if imaging files are transferred
         imagingfl=[xx for xx in os.listdir(os.path.join(params["datadir"],
                                         params["mouse_name"], params["day"])) if "000" in xx][0]
         imagingflnm=os.path.join(params["datadir"], params["mouse_name"], params["day"], imagingfl)
         sbxfl=[os.path.join(imagingflnm,xx) for xx in os.listdir(imagingflnm) if "sbx" in xx][0]
-        if len(imagingfl)==1:           
-            
+        
+        if len(imagingfl)!=0:           
+            print(imagingfl)
             #https://github.com/jcouto/sbxreader; download dependency
             from sbxreader import sbx_memmap
             dat = sbx_memmap(sbxfl)
+            #check if tifs exists
+
             #copied from ed's legacy version: loadVideoTiffNoSplit_EH2_new_sbx_uint16
             for nn,i in enumerate(range(0, dat.shape[0], 3000)): #splits into tiffs of 3000 planes each
                 stack = np.array(dat[i:i+3000])
@@ -61,6 +66,7 @@ def main(**args):
             ops["nplanes"]=params["nplanes"] 
             ops["delete_bin"]=params["delete_bin"] #False
             ops["move_bin"]=params["move_bin"]
+            ops["save_mat"]=params["save_mat"]
             
             # provide an h5 path in 'h5py' or a tiff path in 'data_path'
             # db overwrites any ops (allows for experiment specific settings)
@@ -78,9 +84,8 @@ def main(**args):
             # run one experiment
             opsEnd = suite2p.run_s2p(ops=ops, db=db)
 
-
 def fill_params(mouse_name, day, datadir, reg_tif, nplanes, delete_bin,
-                move_bin, stepid):
+                move_bin, stepid, save_mat):
 
     params = {}
 
@@ -96,6 +101,7 @@ def fill_params(mouse_name, day, datadir, reg_tif, nplanes, delete_bin,
     params["nplanes"]       = nplanes
     params["delete_bin"]    = delete_bin
     params["move_bin"]      = move_bin
+    params["save_mat"]      = save_mat
         
     return params
 
@@ -113,13 +119,23 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     
     parser.add_argument("stepid", type=int,
-                        help="Step ID to run patching, reconstructing, or cell counting")
-    parser.add_argument("jobid",
-                        help="Job ID to run as an array job")
-    parser.add_argument("expt_name",
-                        help="Tracing output directory (aka registration output)")
-    parser.add_argument("scratch_dir",
-                        help="Scratch directory to store image chunks/memory mapped arrays")
+                        help="Step ID to run folder name, suite2p processing, cell tracking")
+    parser.add_argument("mouse_name",
+                        help="e.g. E200")
+    parser.add_argument("day", type=str,
+                        help="day of imaging")
+    parser.add_argument("datadir", type=str,
+                        help="Main directory with mouse names and days")
+    parser.add_argument("--reg_tif", default=True,
+                        help="Whether or not to save move corrected imagings")
+    parser.add_argument("--nplanes", default=1,
+                        help="Number of planes imaged")
+    parser.add_argument("--delete_bin", default=False,
+                        help="Delete data.bin to run suite2p")
+    parser.add_argument("--move_bin", default=False,
+                        help="Move data.bin from fast disk")
+    parser.add_argument("--save_mat", default=True,
+                        help="Save Fall.mat (needed for cell tracking)")    
     
     args = parser.parse_args()
     
