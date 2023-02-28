@@ -27,9 +27,7 @@ def main(**args):
             #behavior folder
             makedir(os.path.join(params["datadir"],params["mouse_name"], params["day"], "behavior"))
             makedir(os.path.join(params["datadir"],params["mouse_name"], params["day"], "behavior", "vr"))
-            makedir(os.path.join(params["datadir"],params["mouse_name"], params["day"], "behavior", "clampex"))
-            #camera 
-        
+            makedir(os.path.join(params["datadir"],params["mouse_name"], params["day"], "behavior", "clampex")) 
     	
     elif args["stepid"] == 1:
         ####CHECK TO SEE IF FILES ARE TRANSFERRED AND MAKE TIFS/RUN SUITE2P####
@@ -50,15 +48,17 @@ def main(**args):
             from sbxreader import sbx_memmap
             dat = sbx_memmap(sbxfl)
             #check if tifs exists
-
-            #copied from ed's legacy version: loadVideoTiffNoSplit_EH2_new_sbx_uint16
-            for nn,i in enumerate(range(0, dat.shape[0], 3000)): #splits into tiffs of 3000 planes each
-                stack = np.array(dat[i:i+3000])
-                #crop in x
-                stack=np.squeeze(stack)[:,:,89:718] #hard coded crop from ed's og script
-                tifffile.imwrite(sbxfl[:-4]+f'_{nn+1:03d}.tif', stack.astype('uint16'))
-
-            #do suite2p
+            tifs=[xx for xx in os.listdir(imagingflnm) if ".tif" in xx]
+            if len(tifs)!=14: #assumes 40000 frames version, TODO: make modular
+                #copied from ed's legacy version: loadVideoTiffNoSplit_EH2_new_sbx_uint16
+                for nn,i in enumerate(range(0, dat.shape[0], 3000)): #splits into tiffs of 3000 planes each
+                    stack = np.array(dat[i:i+3000])
+                    #crop in x
+                    stack=np.squeeze(stack)[:,:,89:718] #hard coded crop from ed's og script
+                    tifffile.imwrite(sbxfl[:-4]+f'_{nn+1:03d}.tif', stack.astype('uint16'))
+            else:
+                print("\n ******14 tifs exists! Running suite2p... ******\n")
+            #do suite2p after tifs are made
             # set your options for running
             ops = suite2p.default_ops() # populates ops with the default options
             #edit ops if needed, based on user input
@@ -71,21 +71,24 @@ def main(**args):
             # provide an h5 path in 'h5py' or a tiff path in 'data_path'
             # db overwrites any ops (allows for experiment specific settings)
             db = {
-                  'h5py': [], # a single h5 file path
-                  'h5py_key': 'data',
-                  'look_one_level_down': False, # whether to look in ALL subfolders when searching for tiffs
-                  'data_path': [imagingflnm], # a list of folders with tiffs 
-                                                         # (or folder of folders with tiffs if look_one_level_down is True, or subfolders is not empty)
-                                                       
-                  'subfolders': [], # choose subfolders of 'data_path' to look in (optional)
-                  # 'fast_disk': 'C:/BIN', # string which specifies where the binary file will be stored (should be an SSD)
+                'h5py': [], # a single h5 file path
+                'h5py_key': 'data',
+                'look_one_level_down': False, # whether to look in ALL subfolders when searching for tiffs
+                'data_path': [imagingflnm], # a list of folders with tiffs 
+                                                        # (or folder of folders with tiffs if look_one_level_down is True, or subfolders is not empty)
+                                                    
+                'subfolders': [], # choose subfolders of 'data_path' to look in (optional)
+                # 'fast_disk': 'C:/BIN', # string which specifies where the binary file will be stored (should be an SSD)
                 }
 
             # run one experiment
             opsEnd = suite2p.run_s2p(ops=ops, db=db)
 
+    elif args["stepid"] == 2:
+        ########################WEEKLY CONCATENATED SUTIE2P RUN########################
+
 def fill_params(mouse_name, day, datadir, reg_tif, nplanes, delete_bin,
-                move_bin, stepid, save_mat):
+                move_bin, stepid, save_mat, days_of_week, week):
 
     params = {}
 
@@ -93,9 +96,11 @@ def fill_params(mouse_name, day, datadir, reg_tif, nplanes, delete_bin,
     params["stepid"]        = stepid
     
     #experiment params
-    params["mouse_name"]    = mouse_name        
-    params["day"]           = day
-    params["datadir"]       = datadir
+    params["datadir"]       = datadir           #main dir
+    params["mouse_name"]    = mouse_name        #mouse name w/in main dir
+    params["day"]           = day               #session no. w/in mouse name  
+    params["days_of_week"]  = days_of_week      #days to put together for analysis of that week
+    params["week"]          = week              #week np.
     #suite2p params
     params["reg_tif"]       = reg_tif
     params["nplanes"]       = nplanes
