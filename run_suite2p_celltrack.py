@@ -88,6 +88,7 @@ def main(**args):
         ########################WEEKLY CONCATENATED SUTIE2P RUN########################
         dayflds = [os.path.join(params["datadir"],params["mouse_name"], str(day)) for day in params["days_of_week"]]
         imgpths = [os.path.join(dayfld, xx) for dayfld in dayflds for xx in os.listdir(dayfld) if "000" in xx]
+        #assumes that these tifs have already been made in step 1
         tifspths = [os.path.join(imgpth, xx) for imgpth in imgpths for xx in os.listdir(imgpth) if ".tif" in xx]
         tifspths.sort(); print(tifspths)
         #savedir
@@ -164,7 +165,8 @@ if __name__ == "__main__":
                         help="day of imaging")
     parser.add_argument("--days_of_week",  nargs="+", action = "append",
                         help="For step 2, if running weekly concatenated videos, \n\
-                            specify days of the week (integers)")
+                            specify days of the week (integers) \n\
+                            e.g. 1 2 3")
     parser.add_argument("--week", type=int,
                         help="For step 2, week no.")                        
     parser.add_argument("--reg_tif", default=True,
