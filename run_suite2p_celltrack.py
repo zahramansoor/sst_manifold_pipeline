@@ -5,7 +5,7 @@ Created on Fri Feb 24 15:45:37 2023
 @author: Han
 """
 
-import os, sys, shutil, suite2p, tifffile
+import os, sys, shutil, suite2p, tifffile, ast
 import argparse   
 import pandas as pd, numpy as np
 from utils.utils import makedir
@@ -15,10 +15,10 @@ def main(**args):
     #args should be the info you need to specify the params
     # for a given experiment, but only params should be used below
     params = fill_params(**args)    
+    print(params)
     
     if args["stepid"] == 0:
         ###############################MAKE FOLDERS#############################
-
         #check to see if day directory exists
         if not os.path.exists(os.path.join(params["datadir"],params["mouse_name"], params["day"])): 
             print(f"Folder for day {params['day']} of mouse {params['mouse_name']} does not exist. \n\
@@ -28,7 +28,12 @@ def main(**args):
             makedir(os.path.join(params["datadir"],params["mouse_name"], params["day"], "behavior"))
             makedir(os.path.join(params["datadir"],params["mouse_name"], params["day"], "behavior", "vr"))
             makedir(os.path.join(params["datadir"],params["mouse_name"], params["day"], "behavior", "clampex")) 
-    	
+            #cameras (for processed data)
+            makedir(os.path.join(params["datadir"],params["mouse_name"], params["day"], "eye"))
+            makedir(os.path.join(params["datadir"],params["mouse_name"], params["day"], "tail")) 
+            print("\n****Made folders!****\n")
+
+
     elif args["stepid"] == 1:
         ####CHECK TO SEE IF FILES ARE TRANSFERRED AND MAKE TIFS/RUN SUITE2P####
         #args should be the info you need to specify the params
@@ -82,6 +87,7 @@ def main(**args):
 
             # run one experiment
             opsEnd = suite2p.run_s2p(ops=ops, db=db)
+            save_params(params, imagingflnm)
 
     elif args["stepid"] == 2:
         print(params["days_of_week"])
@@ -118,6 +124,12 @@ def main(**args):
 
         # run one experiment
         opsEnd = suite2p.run_s2p(ops=ops, db=db)
+        save_params(params, weekdir)
+
+    elif args["stepid"] == 3:
+        #####################RUN WEEKLY CONCATENATED SUITE2P THRU CELL REG#####################
+        return False
+        #save_params(params, )
 
 def fill_params(mouse_name, day, datadir, reg_tif, nplanes, delete_bin,
                 move_bin, stepid, save_mat, days_of_week, week):
@@ -134,7 +146,7 @@ def fill_params(mouse_name, day, datadir, reg_tif, nplanes, delete_bin,
     params["days_of_week"]  = days_of_week[0]   #days to put together for analysis of that week
     params["week"]          = week              #week np.
     #suite2p params
-    params["reg_tif"]       = reg_tif
+    params["reg_tif"]       = ast.literal_eval(reg_tif)
     params["nplanes"]       = nplanes
     params["delete_bin"]    = delete_bin
     params["move_bin"]      = move_bin
@@ -161,13 +173,13 @@ if __name__ == "__main__":
                         help="e.g. E200")
     parser.add_argument("datadir", type=str,
                         help="Main directory with mouse names and days")
-    parser.add_argument("--day", type=str,
+    parser.add_argument("--day", type=str, default = '1',
                         help="day of imaging")
-    parser.add_argument("--days_of_week",  nargs="+", action = "append",
+    parser.add_argument("--days_of_week",  nargs="+", action = "append", default = [0,1],
                         help="For step 2, if running weekly concatenated videos, \n\
                             specify days of the week (integers) \n\
                             e.g. 1 2 3")
-    parser.add_argument("--week", type=int,
+    parser.add_argument("--week", type=int, default = '1',
                         help="For step 2, week no.")                        
     parser.add_argument("--reg_tif", default=True,
                         help="Whether or not to save move corrected imagings")
