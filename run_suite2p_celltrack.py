@@ -15,8 +15,6 @@ def main(**args):
     #args should be the info you need to specify the params
     # for a given experiment, but only params should be used below
     params = fill_params(**args)    
-    print(params)
-    
     if args["stepid"] == 0:
         ###############################MAKE FOLDERS#############################
         #check to see if day directory exists
@@ -143,7 +141,10 @@ def fill_params(mouse_name, day, datadir, reg_tif, nplanes, delete_bin,
     params["datadir"]       = datadir           #main dir
     params["mouse_name"]    = mouse_name        #mouse name w/in main dir
     params["day"]           = day               #session no. w/in mouse name  
-    params["days_of_week"]  = days_of_week[0]   #days to put together for analysis of that week
+    try: #TODO: fix error
+        params["days_of_week"]  = days_of_week[0]   #days to put together for analysis of that week
+    except:
+        print("\n No days of week specified...\n")
     params["week"]          = week              #week np.
     #suite2p params
     params["reg_tif"]       = ast.literal_eval(reg_tif)
@@ -175,13 +176,13 @@ if __name__ == "__main__":
                         help="Main directory with mouse names and days")
     parser.add_argument("--day", type=str, default = '1',
                         help="day of imaging")
-    parser.add_argument("--days_of_week",  nargs="+", action = "append", default = [0,1],
+    parser.add_argument("--days_of_week",  nargs="+", action = "append",
                         help="For step 2, if running weekly concatenated videos, \n\
                             specify days of the week (integers) \n\
                             e.g. 1 2 3")
     parser.add_argument("--week", type=int, default = '1',
                         help="For step 2, week no.")                        
-    parser.add_argument("--reg_tif", default=True,
+    parser.add_argument("--reg_tif", default='True',
                         help="Whether or not to save move corrected imagings")
     parser.add_argument("--nplanes", default=1,
                         help="Number of planes imaged")
