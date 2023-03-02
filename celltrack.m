@@ -34,75 +34,21 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
-week1=load('Z:\week2day_mapping_cellreg\week1\commoncells_that_are_common_across_weeks.mat').week1_mapped2days_across_weeks;
-week2=load('Z:\week2day_mapping_cellreg\week2\commoncells_that_are_common_across_weeks.mat').week2_mapped2days_across_weeks;
-week3=load('Z:\week2day_mapping_cellreg\week3\commoncells_that_are_common_across_weeks.mat').week3_mapped2days_across_weeks;
-week4=load('Z:\week2day_mapping_cellreg\week4\commoncells_that_are_common_across_weeks.mat').week4_mapped2days_across_weeks;
-weeks=load('C:\Users\Han\Documents\MATLAB\CellReg\ZD_across4weeks_20230201\Results\cellRegistered_20230201_154819.mat');
-
-% find cells in all sessions
-[r,c] = find(weeks.cell_registered_struct.cell_to_index_map~=0);
-[counts, bins] = hist(r,1:size(r,1));
-sessions=4;% specify no of sessions
-cindex = bins(counts==sessions); % finding cells across all 5 sessions
-commoncells_4weeks=zeros(length(cindex),sessions);
-for ci=1:length(cindex)
-    commoncells_4weeks(ci,:)=weeks.cell_registered_struct.cell_to_index_map(cindex(ci),:);
-end
-
-% for each week, we need to find cells that 1) map to days of that week
-% (already in week1,2,... arrays) and 2) map to other days of the week
-% need logicals i.e cell 1 in week 1 is in week 2 and week 3 and week 4
-% see below...
-week1cells_to_map=commoncells_4weeks(:,1); % start with all cells across weeks
-sessions_total=20;
-cellmap2dayacrossweeks=zeros(length(week1cells_to_map),sessions_total);
-for w=1:length(week1cells_to_map)
-    %cell index in other weeks
-    cell_across_weeks=commoncells_4weeks(find(commoncells_4weeks(:,1)==week1cell),:);
-    week1cell=week1cells_to_map(w);
-    daysweek1cell=zeros(size(week1(1,:)));
-    daysweek1cell=week1(find(week1(:,end)==week1cell),1:end-1);    
-    daysweek2cell=week2(find(week2(:,end)==cell_across_weeks(2)),1:end-1); % 1:end-1 to remove week column
-    daysweek3cell=week3(find(week3(:,end)==cell_across_weeks(3)),1:end-1);
-    daysweek4cell=week4(find(week4(:,end)==cell_across_weeks(4)),1:end-1);
-    %old condition
-    % if ~isempty(daysweek1cell) && ~isempty(daysweek2cell) && ~isempty(daysweek3cell) && ~isempty(daysweek4cell) %make sure cell exists across all days
-    %regardless of whether cell exists across multiple days...
-    cellmap2dayacrossweeks(w,:)=[daysweek1cell,daysweek2cell,daysweek3cell,daysweek4cell];
-    %end
-end
-
-% figures for validation
-% align each common cells across all days with an individual mask
-% remember this is the cell index, so you have to find the cell in the
-% original F mat
-cc=cellmap2dayacrossweeks(all(cellmap2dayacrossweeks,2),:);%only gets non zero elements
-%save
-save("Z:\week2day_mapping_cellreg\commoncells_4weeks_week2daymap.mat", "cc")
-%%
 ctab = hsv(length(cc));
-
-% load mats from all days
-fls = dir(fullfile('Z:\cellreg1month_Fmats\', '**\*YC_Fall.mat'));%dir('Z:\cellreg1month_Fmats\*YC_Fall.mat');
-days = cell(1, length(fls));
-for fl=1:length(fls)
-    day = fls(fl);
-    days{fl} = load(fullfile(day.folder,day.name));
-end
+cc=commoncells;
 
 for i=1:length(cc)
     %multi plot of cell mask across all 5 days
     figure(i); 
-    axes=cell(1,sessions_total);
-    for ss=1:sessions_total        
+    axes=cell(1,sessions);
+    for ss=1:sessions        
         day=days(ss);day=day{1};
-        axes{ss}=subplot(4,5,ss); % 2 rows, 3 column, 1 pos; 20 days
+        axes{ss}=subplot(2,2,ss); % 2 rows, 3 column, 1 pos; 20 days
         imagesc(day.ops.meanImg) %meanImg or max_proj
         colormap('gray')
         hold on;
         try
-            %plot(day.stat{1,cc(i,ss)}.xpix, day.stat{1,cc(i,ss)}.ypix, 'Color', [ctab(i,:) 0.3]);
+            plot(day.stat{1,cc(i,ss)}.xpix, day.stat{1,cc(i,ss)}.ypix, 'Color', [ctab(i,:) 0.3]);
         end
         axis off
         title(sprintf('day %i', ss)) %sprintf('day %i', ss)
@@ -117,10 +63,10 @@ end
 % colormap to iterate thru
 ctab = hsv(length(cc));
 figure;
-axes=zeros(1,sessions_total);
-for ss=1:sessions_total
+axes=zeros(1,sessions);
+for ss=1:sessions
     day=days(ss);day=day{1};
-    axes(ss)=subplot(4,5,ss);%(4,5,ss); % 2 rows, 3 column, 1 pos; 20 days
+    axes(ss)=subplot(2,2,ss);%(4,5,ss); % 2 rows, 3 column, 1 pos; 20 days
     imagesc(day.ops.meanImg)
     colormap('gray')
     hold on;
