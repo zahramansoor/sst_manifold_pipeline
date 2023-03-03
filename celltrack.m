@@ -2,10 +2,10 @@
 % get cells detected in cellreg and do analysis
 
 clear all
-src = 'Z:\sstcre_analysis\'; % main folder for analysis
+src = 'Y:\sstcre_analysis\'; % main folder for analysis
 animal = 'e200';
 weekfld = 'week1_2_days';
-week = 1;
+week = 2;
 pth = dir(fullfile(src, "celltrack", sprintf([animal, '_', weekfld]), "Results\*cellRegistered*"));
 load(fullfile(pth.folder, pth.name))
 % find cells in all sessions
@@ -70,11 +70,11 @@ for ss=1:sessions
     imagesc(day.ops.meanImg)
     colormap('gray')
     hold on;
-    for i=1:length(commoncells)
-        try
-            plot(day.stat{1,cc(i,ss)}.xpix, day.stat{1,cc(i,ss)}.ypix, 'Color', [ctab(i,:) 0.3]);
-        end
-    end
+%     for i=1:length(commoncells)
+%         try
+%             plot(day.stat{1,cc(i,ss)}.xpix, day.stat{1,cc(i,ss)}.ypix, 'Color', [ctab(i,:) 0.3]);
+%         end
+%     end
     axis off
     title(sprintf('day %i', ss))
 end

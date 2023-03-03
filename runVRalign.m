@@ -1,8 +1,8 @@
 %Zahra
 %run VR align
 
-mouse_name = "e201";
-days = 8:10;
+mouse_name = "e200";
+days = 10:11;
 src = "Z:\sstcre_imaging";
 addpath(fullfile(pwd, "utils"));
 for day=days
