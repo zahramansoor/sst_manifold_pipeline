@@ -1,0 +1,26 @@
+% Zahra
+% plot behavior (ROE, licks) of animals in SST experiment
+% early days
+% assumes that behavior is aligned to Fall.mat
+
+src = 'Y:\sstcre_analysis\fmats';
+fls = dir(fullfile(src, "*Fall.mat"));
+grayColor = [.7 .7 .7];
+
+for fl=1:numel(fls)
+    flnm = fullfile(fls(fl).folder, fls(fl).name);
+    load(flnm);
+    if exist('rewards', 'var')==1
+        figure;
+        plot(rewards*100, 'k', 'LineWidth',3); hold on; 
+        plot(lickVoltage*1000,'r'); hold on;
+        plot(forwardvel)
+        mousenm = flnm(26:29); day = str2num(flnm(35:36));
+        title(sprintf("mouse %s, day %i", mousenm, day))
+        xticks(1:1000:numel(ybinned))
+        xticklabels(ceil(timedFF(1:1000:end)))
+        xlabel("time (s)")
+        ylabel("normalized value")
+        legend("rewards")
+    end
+end

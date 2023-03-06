@@ -1,9 +1,10 @@
 %Zahra
 %run VR align
 
-mouse_name = "e201";
-days = 12:13;
+mouse_name = "e200";
+days = 8:9;
 src = "Z:\sstcre_imaging";
+% add function path
 addpath(fullfile(pwd, "utils"));
 for day=days
     daypth = dir(fullfile(src, mouse_name, string(day), "behavior", "vr\*.mat"));
