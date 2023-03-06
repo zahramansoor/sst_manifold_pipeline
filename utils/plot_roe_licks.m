@@ -39,11 +39,13 @@ end
 % plot mean image per day
 % e200: i=1:14; e201: 15:27
 figure;
-for i=15:27
-    subplot(3,5,i-14)
+for i=42:54
+    subplot(3,5,i-41)
     imagesc(mice{i}.ops.meanImg) %meanImg or max_proj
     colormap('gray')
-    title(sprintf("day %i", i-14))
+    title(sprintf("day %i", i-41))
     axis off;
     hold on;    
+    disp(i-41)
+    disp(mice{i}.ops.save_path0)
 end
