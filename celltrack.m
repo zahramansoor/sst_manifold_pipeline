@@ -4,15 +4,15 @@
 clear all
 src = 'Y:\sstcre_analysis\'; % main folder for analysis
 animal = 'e200';
-weekfld = 'days1-14';
+weekfld = 'days1-14_wo_day4';
 week = 2;
 pth = dir(fullfile(src, "celltrack", sprintf([animal, '_', weekfld]), "Results\*cellRegistered*"));
 load(fullfile(pth.folder, pth.name))
 % find cells in all sessions
 [r,c] = find(cell_registered_struct.cell_to_index_map~=0);
 [counts, bins] = hist(r,1:size(r,1));
-sessions=14;% specify no of sessions
-cindex = bins(counts==3); % finding cells AT LEAST 2 SESSIONS???
+sessions=13;% specify no of sessions
+cindex = bins(counts==5); % finding cells AT LEAST 2 SESSIONS???
 commoncells=zeros(length(cindex),sessions);
 for ci=1:length(cindex)
     commoncells(ci,:)=cell_registered_struct.cell_to_index_map(cindex(ci),:);
@@ -26,6 +26,15 @@ for fl=1:length(fls)
     days{fl} = load(fullfile(day.folder,day.name));
 end
 
+cc=commoncells;
+% calculate dff across all
+dff = cell(1,sessions);
+for i=1:length(fls)
+    dff{i} = redo_dFF(days{i}.F, 31.25, 20, days{i}.Fneu);
+    disp(i)
+end
+save(fullfile(src, "celltrack", sprintf([animal, '_', weekfld]), "Results\dff.mat"), 'dff', '-v7.3')
+% load(fullfile(src, "celltrack", sprintf([animal, '_', weekfld]), "Results\dff.mat"))
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -34,7 +43,6 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
-cc=commoncells;
 ctab = hsv(length(cc));
 
 for i=1:length(cc)
@@ -81,7 +89,6 @@ end
 linkaxes(axes, 'xy')
 %savefig(sprintf("Z:\\202300201cells.fig"))
 
-load('Z:\\dff_221206-30.mat')
 
 %%
 % plot F (and ideally dff) over ypos
