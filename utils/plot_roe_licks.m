@@ -32,5 +32,18 @@ for fl=1:numel(fls)
         ylabel("normalized value")
         legend(["solenoid (CS)", "rewards", "forward velocity", "lickvoltage"])
     end
+    mice{fl}=mouse;
     clear tr %remove condition from previous loop run
+end
+
+% plot mean image per day
+% e200: i=1:14; e201: 15:27
+figure;
+for i=15:27
+    subplot(3,5,i-14)
+    imagesc(mice{i}.ops.meanImg) %meanImg or max_proj
+    colormap('gray')
+    title(sprintf("day %i", i-14))
+    axis off;
+    hold on;    
 end
