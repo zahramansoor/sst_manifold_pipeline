@@ -7,7 +7,7 @@
 
 clear all; close all;
 src = 'Y:\sstcre_analysis\fmats'; 
-fls = dir(fullfile(src, "*Fall.mat"));
+fls = dir(fullfile(src, "e*Fall.mat"));
 grayColor = [.7 .7 .7];
 
 for fl=1:numel(fls)
@@ -35,6 +35,30 @@ for fl=1:numel(fls)
     mice{fl}=mouse;
     clear tr %remove condition from previous loop run
 end
+
+% average velocity of mouse e200
+% days 2-5 = 3.6071
+% days 8-14 = 12.4254
+forwardvel=zeros(1,40000*4);
+for i=2:5
+    if i==2
+        forwardvel = mice{i}.forwardvel;
+    else
+        forwardvel = [forwardvel mice{i}.forwardvel];
+    end    
+end
+avvel_1 = mean(forwardvel);
+% e201, days 8-14 = 13.0500
+forwardvel=zeros(1,40000*5);
+for i=15:19
+    if i==15
+        forwardvel = mice{i}.forwardvel;
+    else
+        forwardvel = [forwardvel mice{i}.forwardvel];
+    end    
+end
+avvel_2 = mean(forwardvel);
+
 
 % plot mean image per day
 % e200: i=1:14; e201: 15:27

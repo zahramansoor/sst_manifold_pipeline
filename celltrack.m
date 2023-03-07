@@ -3,15 +3,15 @@
 
 clear all
 src = 'Y:\sstcre_analysis\'; % main folder for analysis
-animal = 'e200';
-weekfld = 'days1-14_wo_day4';
+animal = 'e201';
+weekfld = 'days1-14';
 week = 2;
 pth = dir(fullfile(src, "celltrack", sprintf([animal, '_', weekfld]), "Results\*cellRegistered*"));
 load(fullfile(pth.folder, pth.name))
 % find cells in all sessions
 [r,c] = find(cell_registered_struct.cell_to_index_map~=0);
 [counts, bins] = hist(r,1:size(r,1));
-sessions=13;% specify no of sessions
+sessions=length(cell_registered_struct.centroid_locations_corrected);% specify no of sessions
 cindex = bins(counts==5); % finding cells AT LEAST 2 SESSIONS???
 commoncells=zeros(length(cindex),sessions);
 for ci=1:length(cindex)
@@ -19,7 +19,7 @@ for ci=1:length(cindex)
 end
  
 % load mats from all days
-fls = dir(fullfile(src, 'fmats', 'e200*.mat'));%dir('Z:\cellreg1month_Fmats\*YC_Fall.mat');
+fls = dir(fullfile(src, 'fmats', 'e201*.mat'));%dir('Z:\cellreg1month_Fmats\*YC_Fall.mat');
 days = cell(1, length(fls));
 for fl=1:length(fls)
     day = fls(fl);
@@ -45,13 +45,14 @@ save(fullfile(src, "celltrack", sprintf([animal, '_', weekfld]), "Results\dff.ma
 %%
 ctab = hsv(length(cc));
 
-for i=1:length(cc)
+for i=1:20
     %multi plot of cell mask across all 5 days
     figure(i); 
+
     axes=cell(1,sessions);
     for ss=1:sessions        
         day=days(ss);day=day{1};
-        axes{ss}=subplot(2,2,ss); % 2 rows, 3 column, 1 pos; 20 days
+        axes{ss}=subplot(3,4,ss); % 2 rows, 3 column, 1 pos; 20 days
         imagesc(day.ops.meanImg) %meanImg or max_proj
         colormap('gray')
         hold on;
@@ -74,7 +75,7 @@ figure;
 axes=zeros(1,sessions);
 for ss=1:sessions
     day=days(ss);day=day{1};
-    axes(ss)=subplot(3,5,ss);%(4,5,ss); % 2 rows, 3 column, 1 pos; 20 days
+    axes(ss)=subplot(3,4,ss);%(4,5,ss); % 2 rows, 3 column, 1 pos; 20 days
     imagesc(day.ops.meanImg)
     colormap('gray')
     hold on;
@@ -92,6 +93,7 @@ linkaxes(axes, 'xy')
 
 %%
 % plot F (and ideally dff) over ypos
+% only for HRZ
 
 days_to_plot=[2,5,10]; %plot 5 days at a time
 cellno=2;
@@ -124,38 +126,36 @@ title(han,sprintf('Cell no. %03d', cellno));
 % savefig(sprintf('Z:\\cellregtest_behavior\\cell_%05d_days%02d_%02d_%02d_%02d_%02d.fig', cellno, days_to_plot))
 %%
 % plot traces across all days
-
-% days_to_plot=[1,6,10,14,18]; %plot 5 days at a time
 cellno=78;
-for cellno=1:107 %no. of common cells
-grayColor = [.7 .7 .7];
-sessions_total=20;
-fig=figure;
-for dayplt=1:sessions_total
-    ax1=subplot(sessions_total,1,dayplt);
-    day=days(dayplt);day=day{1};
-    try
-        plot(dff{dayplt}(cc(cellno,dayplt),:),'k') % 2 in the first position is cell no
+sessions_total=13;
+for cellno=1:length(cc) %no. of common cells
+    grayColor = [.7 .7 .7];    
+    fig=figure;
+    for dayplt=1:sessions_total
+        ax1=subplot(sessions_total,1,dayplt);
+        day=days(dayplt);day=day{1};
+        try
+            plot(dff{dayplt}(cc(cellno,dayplt),:),'k') % 2 in the first position is cell no
+        end
+        axs{dayplt}=ax1;
+        set(gca,'XTick',[], 'YTick', [])
+        set(gca,'visible','off')
     end
-    axs{dayplt}=ax1;
-    set(gca,'XTick',[], 'YTick', [])
-    set(gca,'visible','off')
-end
-% linkaxes([axs{:}],'xy')
-copygraphics(gcf, 'BackgroundColor', 'none');
-title(sprintf('Cell no. %03d', cellno));
+    % linkaxes([axs{:}],'xy')
+    copygraphics(gcf, 'BackgroundColor', 'none');
+    title(sprintf('Cell no. %03d', cellno));
 end
 %%
 %only load if saved data from previous run
-load("Z:\week2day_mapping_cellreg\commoncells_4weeks_week2daymap.mat")
-load('Z:\\dff_221206-30.mat')
-% load mats from all days
-fls = dir(fullfile('Z:\cellreg1month_Fmats\', '**\*YC_Fall.mat'));%dir('Z:\cellreg1month_Fmats\*YC_Fall.mat');
-days = cell(1, length(fls));
-for fl=1:length(fls)
-    day = fls(fl);
-    days{fl} = load(fullfile(day.folder,day.name));
-end
+% load("Z:\week2day_mapping_cellreg\commoncells_4weeks_week2daymap.mat")
+% load('Z:\\dff_221206-30.mat')
+% % load mats from all days
+% fls = dir(fullfile('Z:\cellreg1month_Fmats\', '**\*YC_Fall.mat'));%dir('Z:\cellreg1month_Fmats\*YC_Fall.mat');
+% days = cell(1, length(fls));
+% for fl=1:length(fls)
+%     day = fls(fl);
+%     days{fl} = load(fullfile(day.folder,day.name));
+% end
 
 % align to behavior (rewards and solenoid) for each cell?
 % per day, get this data...
@@ -165,27 +165,34 @@ ccbinnedPerireward=cell(1,length(days));
 ccrewdFF=cell(1,length(days));
 for d=1:length(days)
     day=days(d);day=day{1};
-    rewardsonly=day.rewards==1;
-    cs=day.rewards==0.5;
-    % runs for all cells
-    [binnedPerireward,allbins,rewdFF] = perirewardbinnedactivity(dff{d}',rewardsonly,day.timedFF,range,bin); %rewardsonly if mapping to reward
-    % now extract ids only of the common cells
-    ccbinnedPerireward{d}=binnedPerireward(cc(:,d),:);
-    ccrewdFF{d}=rewdFF(:,cc(:,d),:);
+    try
+        rewardsonly=day.rewards==1;
+        cs=day.rewards==0.5;
+        % runs for all cells
+        [binnedPerireward,allbins,rewdFF] = perirewardbinnedactivity(dff{d}',rewardsonly,day.timedFF,range,bin); %rewardsonly if mapping to reward
+        % now extract ids only of the common cells
+        ccbinnedPerireward{d}=binnedPerireward; %changes to reflect when mapping is not present for all days
+        ccrewdFF{d}=rewdFF;
+    end
 end
 %%
 % plot
 cellno=2; % cell to align
-optodays=[5,6,7,9,10,11,13,14,16,17,18];
+% optodays=[5,6,7,9,10,11,13,14,16,17,18];
 for cellno=1:length(cc) %or align all cells hehe
+    clear legg;
+    dd=1;  %for legend
     figure;
     for d=1:length(days)
         pltrew=ccbinnedPerireward{d};
-        if ~any(optodays(:)==d)            
-            plot(pltrew(cellno,:)', 'Color', 'black')            
-        else
-            plot(pltrew(cellno,:)', 'Color', 'red')    
-        end
+%         if ~any(optodays(:)==d)            
+           try
+               plot(pltrew(cc(cellno,d),:)') %important distinction
+               legg{dd}=sprintf('day %d',d); dd=dd+1;
+           end
+%         else
+%             plot(pltrew(cellno,:)', 'Color', 'red')    
+%         end
         hold on;        
     end
     % plot reward location as line
@@ -194,5 +201,6 @@ for cellno=1:length(cc) %or align all cells hehe
     xticklabels([allbins(1:5:end) range]);
     xlabel('seconds')
     ylabel('dF/F')
+    legend(char(legg)) %plots days that cell was detected
     title(sprintf('Cell no. %04d', cellno))
 end
