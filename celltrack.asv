@@ -3,8 +3,8 @@
 
 clear all
 src = 'Y:\sstcre_analysis\'; % main folder for analysis
-animal = 'e201';
-weekfld = 'days1-14';
+animal = 'e200';
+weekfld = 'days5-14';
 week = 2;
 pth = dir(fullfile(src, "celltrack", sprintf([animal, '_', weekfld]), "Results\*cellRegistered*"));
 load(fullfile(pth.folder, pth.name))
@@ -12,20 +12,21 @@ load(fullfile(pth.folder, pth.name))
 [r,c] = find(cell_registered_struct.cell_to_index_map~=0);
 [counts, bins] = hist(r,1:size(r,1));
 sessions=length(cell_registered_struct.centroid_locations_corrected);% specify no of sessions
-cindex = bins(counts==5); % finding cells AT LEAST 2 SESSIONS???
+cindex = bins(counts==3); % finding cells AT LEAST 2 SESSIONS???
 commoncells=zeros(length(cindex),sessions);
 for ci=1:length(cindex)
     commoncells(ci,:)=cell_registered_struct.cell_to_index_map(cindex(ci),:);
 end
  
 % load mats from all days
-fls = dir(fullfile(src, 'fmats', 'e201*.mat'));%dir('Z:\cellreg1month_Fmats\*YC_Fall.mat');
+fls = dir(fullfile(src, 'fmats', sprintf('%s*.mat', animal)));%dir('Z:\cellreg1month_Fmats\*YC_Fall.mat');
 days = cell(1, length(fls));
 for fl=1:length(fls)
     day = fls(fl);
     days{fl} = load(fullfile(day.folder,day.name));
 end
-
+% remove days 1-3
+days=days{4:end}
 cc=commoncells;
 % calculate dff across all
 dff = cell(1,sessions);
@@ -165,28 +166,34 @@ ccbinnedPerireward=cell(1,length(days));
 ccrewdFF=cell(1,length(days));
 for d=1:length(days)
     day=days(d);day=day{1};
-    try:
-    rewrdsonly=day.rewards==1;
-    cs=day.rewards==0.5;
-    % runs for all cells
-    [binnedPerireward,allbins,rewdFF] = perirewardbinnedactivity(dff{d}',rewardsonly,day.timedFF,range,bin); %rewardsonly if mapping to reward
-    % now extract ids only of the common cells
-    ccbinnedPerireward{d}=binnedPerireward(cc(:,d),:);
-    ccrewdFF{d}=rewdFF(:,cc(:,d),:);
+    try
+        rewardsonly=day.rewards==1;
+        cs=day.rewards==0.5;
+        % runs for all cells
+        [binnedPerireward,allbins,rewdFF] = perirewardbinnedactivity(dff{d}',rewardsonly,day.timedFF,range,bin); %rewardsonly if mapping to reward
+        % now extract ids only of the common cells
+        ccbinnedPerireward{d}=binnedPerireward; %changes to reflect when mapping is not present for all days
+        ccrewdFF{d}=rewdFF;
+    end
 end
 %%
 % plot
 cellno=2; % cell to align
-optodays=[5,6,7,9,10,11,13,14,16,17,18];
+% optodays=[5,6,7,9,10,11,13,14,16,17,18];
 for cellno=1:length(cc) %or align all cells hehe
+    clear legg;
+    dd=1;  %for legend
     figure;
     for d=1:length(days)
         pltrew=ccbinnedPerireward{d};
-        if ~any(optodays(:)==d)            
-            plot(pltrew(cellno,:)', 'Color', 'black')            
-        else
-            plot(pltrew(cellno,:)', 'Color', 'red')    
-        end
+%         if ~any(optodays(:)==d)            
+           try
+               plot(pltrew(cc(cellno,d),:)') %important distinction
+               legg{dd}=sprintf('day %d',d); dd=dd+1;
+           end
+%         else
+%             plot(pltrew(cellno,:)', 'Color', 'red')    
+%         end
         hold on;        
     end
     % plot reward location as line
@@ -195,5 +202,6 @@ for cellno=1:length(cc) %or align all cells hehe
     xticklabels([allbins(1:5:end) range]);
     xlabel('seconds')
     ylabel('dF/F')
+    legend(char(legg)) %plots days that cell was detected
     title(sprintf('Cell no. %04d', cellno))
 end

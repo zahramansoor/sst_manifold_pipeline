@@ -3,8 +3,8 @@
 
 clear all
 src = 'Y:\sstcre_analysis\'; % main folder for analysis
-animal = 'e201';
-weekfld = 'days1-14';
+animal = 'e200';
+weekfld = 'days5-14';
 week = 2;
 pth = dir(fullfile(src, "celltrack", sprintf([animal, '_', weekfld]), "Results\*cellRegistered*"));
 load(fullfile(pth.folder, pth.name))
@@ -19,13 +19,14 @@ for ci=1:length(cindex)
 end
  
 % load mats from all days
-fls = dir(fullfile(src, 'fmats', 'e201*.mat'));%dir('Z:\cellreg1month_Fmats\*YC_Fall.mat');
+fls = dir(fullfile(src, 'fmats', sprintf('%s*.mat', animal)));%dir('Z:\cellreg1month_Fmats\*YC_Fall.mat');
 days = cell(1, length(fls));
 for fl=1:length(fls)
     day = fls(fl);
     days{fl} = load(fullfile(day.folder,day.name));
 end
-
+% remove days 1-3
+days=days(4:end);
 cc=commoncells;
 % calculate dff across all
 dff = cell(1,sessions);
@@ -75,7 +76,7 @@ figure;
 axes=zeros(1,sessions);
 for ss=1:sessions
     day=days(ss);day=day{1};
-    axes(ss)=subplot(3,4,ss);%(4,5,ss); % 2 rows, 3 column, 1 pos; 20 days
+    axes(ss)=subplot(3,5,ss);%(4,5,ss); % 2 rows, 3 column, 1 pos; 20 days
     imagesc(day.ops.meanImg)
     colormap('gray')
     hold on;
