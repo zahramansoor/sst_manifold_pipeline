@@ -42,7 +42,7 @@ pth = 'Y:\sstcre_analysis\celltrack';
 [fileroot,~,~] = fileparts(pth);
 
 % Defining the results_directory and creating the figures_directory:
-results_directory= fullfile(pth,'e201_week2_2_days', 'Results') ;
+results_directory= fullfile(pth,'e201_week3_2_days', 'Results') ;
 
 figures_directory=fullfile(results_directory,'Figures');
 if exist(figures_directory,'dir')~=7
@@ -52,10 +52,12 @@ end
 figures_visibility='on'; % either 'on' or 'off' (in any case figures are saved)
 
 % define path of sample data
-number_of_sessions=4; %remember to change no of sessions
-file_names=cell(1,number_of_sessions);
+
 fls = dir(fullfile(fileroot, "fmats\converted_e201*.mat"));
-fls = fls([4:6 17]);
+fls = fls([8:12 18]); % e201, week 3 dropped day 8
+number_of_sessions=length(fls); %remember to change no of sessions
+file_names=cell(1,number_of_sessions);
+
 for it = 1:number_of_sessions
     file_names{it} = fullfile(fls(it).folder, fls(it).name); %to account for dates of sessions in my trial data
 end
