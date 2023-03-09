@@ -48,8 +48,8 @@ for i=10:16
     end    
 end
 avvel_1 = mean(forwardvel);
-% e201, days 10-16 = 13.18
-forwardvel=zeros(1,40000*7);
+% e201, days 10:16
+forwardvel=zeros(1,40000*6);
 for i=25:31
     if i==25
         forwardvel = mice{i}.forwardvel;
@@ -61,17 +61,15 @@ avvel_2 = mean(forwardvel);
 
 
 % plot mean image per day
-% e200: i=1:16; e201: 17:31
-j = 16; %offset
+% e200: i=1:14; e201: 15:27
 figure;
-for i=17:31
-    axes{i-j}=subplot(4,4,i-j);
+for i=42:54
+    subplot(3,5,i-41)
     imagesc(mice{i}.ops.meanImg) %meanImg or max_proj
     colormap('gray')
-    title(sprintf("day %i", i-j))
+    title(sprintf("day %i", i-41))
     axis off;
     hold on;    
-    disp(i-j)
+    disp(i-41)
     disp(mice{i}.ops.save_path0)
 end
-linkaxes([axes{:}], 'xy')
