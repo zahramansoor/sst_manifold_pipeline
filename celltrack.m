@@ -4,7 +4,7 @@
 clear all
 src = 'Y:\sstcre_analysis\'; % main folder for analysis
 animal = 'e200';
-weekfld = 'days5-16';
+weekfld = 'days5-15';
 week = 2;
 pth = dir(fullfile(src, "celltrack", sprintf([animal, '_', weekfld]), "Results\*cellRegistered*"));
 load(fullfile(pth.folder, pth.name))
@@ -12,21 +12,19 @@ load(fullfile(pth.folder, pth.name))
 [r,c] = find(cell_registered_struct.cell_to_index_map~=0);
 [counts, bins] = hist(r,1:size(r,1));
 sessions=length(cell_registered_struct.centroid_locations_corrected);% specify no of sessions
-cindex = bins(counts==2); % finding cells AT LEAST 2 SESSIONS???
+cindex = bins(counts==5); % finding cells AT LEAST 2 SESSIONS???
 commoncells=zeros(length(cindex),sessions);
 for ci=1:length(cindex)
     commoncells(ci,:)=cell_registered_struct.cell_to_index_map(cindex(ci),:);
 end
  
 % load mats from all days
-fls = dir(fullfile(src, 'fmats', sprintf('%s\\e200*.mat', animal)));%dir('Z:\cellreg1month_Fmats\*YC_Fall.mat');
+fls = dir(fullfile(src, 'fmats', sprintf('%s\\%s*.mat', animal, animal)));%dir('Z:\cellreg1month_Fmats\*YC_Fall.mat');
 days = cell(1, length(fls));
 for fl=1:length(fls)
     day = fls(fl);
     days{fl} = load(fullfile(day.folder,day.name));
 end
-% remove days 1-3
-days=days(4:end);
 cc=commoncells;
 % calculate dff across all
 dff = cell(1,sessions);
@@ -76,7 +74,7 @@ figure;
 axes=zeros(1,sessions);
 for ss=1:sessions
     day=days(ss);day=day{1};
-    axes(ss)=subplot(3,5,ss);%(4,5,ss); % 2 rows, 3 column, 1 pos; 20 days
+    axes(ss)=subplot(3,4,ss);%(4,5,ss); % 2 rows, 3 column, 1 pos; 20 days
     imagesc(day.ops.meanImg)
     colormap('gray')
     hold on;
@@ -86,7 +84,10 @@ for ss=1:sessions
         end
     end
     axis off
-    title(sprintf('day %i', ss))
+    [dy,~] = fileparts(day.ops.data_path);
+    [~,dynm] = fileparts(dy);
+    dy=str2num(dynm);
+    title(sprintf('day %i', dy))
 end
 linkaxes(axes, 'xy')
 %savefig(sprintf("Z:\\202300201cells.fig"))
