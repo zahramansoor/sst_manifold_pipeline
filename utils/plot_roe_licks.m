@@ -23,7 +23,10 @@ for fl=1:numel(fls)
         figure;
         plot(sol*50, 'g', 'LineWidth',3); hold on; 
         plot(rew*50, 'b', 'LineWidth',3); hold on; 
-        plot(mouse.lickVoltage*1000,'r'); hold on;
+        test = mouse.lickVoltage*1000;
+        plot(test,'r'); hold on;
+        plot(find(mouse.licks),test(find(mouse.licks)),'k*')
+
         plot(mouse.forwardvel, 'Color', grayColor)
         mousenm = flnm(26:29); day = str2num(flnm(39:41));
         title(sprintf("mouse %s, day %i", mousenm, day))

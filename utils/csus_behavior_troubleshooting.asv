@@ -1,0 +1,39 @@
+% Zahra
+% plot behavior (ROE, licks) of animals in SST experiment
+% align to CS to see if the animal learns anything
+% E201 (speedy) :|
+
+% day 1 of new conditioning
+% no rewards no VR
+% letting the animal run for a while and manually delivering CS/US with
+% numpad / in the paradigm
+
+clear all
+load('Y:\sstcre_troubleshooting\E201_13_Mar_2023_time(08_52_59).mat')
+grayColor = [.7 .7 .7];
+
+forwardvel=-0.013*VR.ROE(100:end)./diff(VR.time(99:end)); % skipping first 100 frames just to even out arrays
+sol = VR.reward(100:end)==0.5; % codes for solenoid
+reward = VR.reward(100:end)>0.5; 
+
+figure;
+plot(sol*50, 'g', 'LineWidth',3); hold on;
+plot(reward*50, 'b', 'LineWidth',3); hold on;
+test = VR.lickVoltage*1000;
+plot(test,'r'); hold on;
+plot(forwardvel, 'Color', grayColor)
+% xlim([0 110000])
+
+% peri cs velocity
+
+idx = find(sol);
+periCSvel = zeros(length(idx),61);
+for iid=1:length(idx)
+    rn = (idx(iid)-range:idx(iid)+range);
+    if max(rn)>40000
+        rn(find(rn>40000))=NaN;
+    end
+    periCSvel(iid,:)=day.lickVoltage(rn);
+end
+periCSveld{d}=periCSvel;
+periCSveld_av{d} = nanmean(periCSvel,1);
