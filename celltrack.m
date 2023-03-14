@@ -133,10 +133,10 @@ ccrewdFF=cell(1,length(days));
 for d=1:length(days)
     day=days(d);day=day{1};
     try
-        rewardsonly=day.rewards==1;
+        rewardsonly=day.rewards>1;
         cs=day.rewards==0.5;
         % runs for all cells
-        [binnedPerireward,allbins,rewdFF] = perirewardbinnedactivity(dff{d}',cs,day.timedFF,range,bin); %rewardsonly if mapping to reward
+        [binnedPerireward,allbins,rewdFF] = perirewardbinnedactivity(dff{d}',rewardsonly,day.timedFF,range,bin); %rewardsonly if mapping to reward
         % now extract ids only of the common cells
         ccbinnedPerireward{d}=binnedPerireward; %changes to reflect when mapping is not present for all days
         ccrewdFF{d}=rewdFF;
@@ -147,15 +147,16 @@ end
 cellno=2; % cell to align
 % optodays=[5,6,7,9,10,11,13,14,16,17,18];
 for cellno=1:length(cc) %or align all cells hehe
-    clear legg;
-    dd=1;  %for legend
     figure;
+    daynms = zeros(1, length(days));
     for d=1:length(days)
-        pltrew=rewdFF{d};
+        pltrew=ccbinnedPerireward{d};
 %         if ~any(optodays(:)==d)            
            try
                plot(pltrew(cc(cellno,d),:)') %important distinction
-               legg{dd}=sprintf('day %d',d); dd=dd+1;
+               [daynm,~] = fileparts(days{d}.ops.data_path);
+               [~,daynm] = fileparts(daynm);
+               daynms(d)=str2num(daynm);
            end
 %         else
 %             plot(pltrew(cellno,:)', 'Color', 'red')    
@@ -168,6 +169,7 @@ for cellno=1:length(cc) %or align all cells hehe
     xticklabels([allbins(1:5:end) range]);
     xlabel('seconds')
     ylabel('dF/F')
-    legend(char(legg)) %plots days that cell was detected
+    daynms=daynms(daynms~=0) ;
+    legend(num2str([daynms(:)])) %plots days that cell was detected
     title(sprintf('Cell no. %04d', cellno))
 end
