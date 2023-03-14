@@ -9,7 +9,7 @@
 % numpad / in the paradigm
 
 clear all
-load('Y:\sstcre_troubleshooting\E201_13_Mar_2023_time(08_52_59).mat')
+load('Y:\sstcre_troubleshooting\E201_14_Mar_2023_time(08_30_32).mat')
 grayColor = [.7 .7 .7];
 
 forwardvel=-0.013*VR.ROE(100:end)./diff(VR.time(99:end)); % skipping first 100 frames just to even out arrays

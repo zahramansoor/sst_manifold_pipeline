@@ -11,7 +11,7 @@ load(fullfile(pth.folder, pth.name))
 [r,c] = find(cell_registered_struct.cell_to_index_map~=0);
 [counts, bins] = hist(r,1:size(r,1));
 sessions=length(cell_registered_struct.centroid_locations_corrected);% specify no of sessions
-cindex = bins(counts==12); % finding cells AT LEAST 2 SESSIONS???
+cindex = bins(counts==5); % finding cells AT LEAST 2 SESSIONS???
 commoncells=zeros(length(cindex),sessions);
 for ci=1:length(cindex)
     commoncells(ci,:)=cell_registered_struct.cell_to_index_map(cindex(ci),:);
@@ -115,6 +115,7 @@ for cellno=1:cells_to_loop %no. of common cells
 end
 %%
 %only load if saved data from previous run
+% load("Z:\week2day_mapping_cellreg\commoncells_4weeks_week2daymap.mat")
 % load('Z:\\dff_221206-30.mat')
 % % load mats from all days
 % fls = dir(fullfile('Z:\cellreg1month_Fmats\', '**\*YC_Fall.mat'));%dir('Z:\cellreg1month_Fmats\*YC_Fall.mat');
@@ -136,7 +137,7 @@ for d=1:length(days)
         rewardsonly=day.rewards==1;
         cs=day.rewards==0.5;
         % runs for all cells
-        [binnedPerireward,allbins,rewdFF] = perirewardbinnedactivity(dff{d}',cs,day.timedFF,range,bin); %rewardsonly if mapping to reward
+        [binnedPerireward,allbins,rewdFF] = perirewardbinnedactivity(dff{d}',rewardsonly,day.timedFF,range,bin); %rewardsonly if mapping to reward
         % now extract ids only of the common cells
         ccbinnedPerireward{d}=binnedPerireward; %changes to reflect when mapping is not present for all days
         ccrewdFF{d}=rewdFF;
@@ -146,12 +147,12 @@ end
 % plot
 cellno=2; % cell to align
 % optodays=[5,6,7,9,10,11,13,14,16,17,18];
-for cellno=1:length(cc) %or align all cells hehe
+for cellno=100:150%length(cc) %or align all cells hehe
     clear legg;
     dd=1;  %for legend
     figure;
     for d=1:length(days)
-        pltrew=rewdFF{d};
+        pltrew=ccbinnedPerireward{d};
 %         if ~any(optodays(:)==d)            
            try
                plot(pltrew(cc(cellno,d),:)') %important distinction

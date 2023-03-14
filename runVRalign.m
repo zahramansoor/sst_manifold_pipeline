@@ -2,7 +2,7 @@
 %run VR align
 
 mouse_name = "e201";
-days = [17];
+days = [18];
 src = "Z:\sstcre_imaging";
 % add function path
 addpath(fullfile(pwd, "utils"));

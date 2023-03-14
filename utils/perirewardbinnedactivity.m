@@ -18,7 +18,7 @@ for rr = 1:length(Rewindx)
             if sum(currentidxlogical)>0
                 checkidx = checks{currentidxlogical};
                 
-                rewdFF(bin,:,rr) = nanmean(dFF(checkidx,1); 
+                rewdFF(bin,:,rr) = nanmean(dFF(checkidx,:),1);
             else
                 rewdFF(bin,:,rr) = NaN;
             end
@@ -30,7 +30,6 @@ for rr = 1:length(Rewindx)
 end
 
 meanrewdFF = nanmean(rewdFF,3);
-rewdFF = squeeze(rewdFF);
 % figure()
 y = 1:1:size(dFF,2);
 x = -1*range:binsize:range-binsize;

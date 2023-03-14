@@ -42,8 +42,8 @@ pth = 'Y:\sstcre_analysis\celltrack';
 [fileroot,~,~] = fileparts(pth);
 
 % Defining the results_directory and creating the figures_directory:
-animal = 'e200';
-results_directory= fullfile(pth,sprintf('%s_days5-15',animal), 'Results') ;
+animal = 'e201';
+results_directory= fullfile(pth,sprintf('%s_days1-18',animal), 'Results') ;
 
 figures_directory=fullfile(results_directory,'Figures');
 if exist(figures_directory,'dir')~=7
