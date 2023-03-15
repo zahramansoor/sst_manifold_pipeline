@@ -31,8 +31,8 @@ for i=1:sessions
     dff{i+2} = redo_dFF(days{i}.F, 31.25, 20, days{i}.Fneu);
     disp(i)
 end
-save(fullfile(src, "celltrack", sprintf([animal, '_', weekfld]), "Results\dff.mat"), 'dff', '-v7.3')
-% load(fullfile(src, "celltrack", sprintf([animal, '_', weekfld]), "Results\dff.mat"))
+% save(fullfile(src, "celltrack", sprintf([animal, '_', weekfld]), "Results\dff.mat"), 'dff', '-v7.3')
+load(fullfile(src, "celltrack", sprintf([animal, '_', weekfld]), "Results\dff.mat"))
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -94,12 +94,11 @@ linkaxes(axes, 'xy')
 %%
 % plot traces across all days
 cellno=78;
-sessions_total=13;
 cells_to_loop = 20; %length(cc)
 for cellno=1:cells_to_loop %no. of common cells
     grayColor = [.7 .7 .7];    
     fig=figure;
-    for dayplt=1:sessions
+    for dayplt=3:sessions
         ax1=subplot(sessions,1,dayplt);
         day=days(dayplt);day=day{1};
         try
