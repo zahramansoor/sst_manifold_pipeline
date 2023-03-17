@@ -56,12 +56,13 @@ def main(**args):
             if len(tifs)!=14: #assumes 40000 frames version, TODO: make modular
                 #copied from ed's legacy version: loadVideoTiffNoSplit_EH2_new_sbx_uint16
                 for nn,i in enumerate(range(0, dat.shape[0], 3000)): #splits into tiffs of 3000 planes each
-                    stack = np.array(dat[i:i+3000])
-                    #crop in x
-                    stack=np.squeeze(stack)[:,:,89:718] #hard coded crop from ed's og script
-                    tifffile.imwrite(sbxfl[:-4]+f'_{nn+1:03d}.tif', stack.astype('uint16'))
+                    for plane in range(dat.shape[1]): # typically multiplane
+                        stack = np.array(dat[i:i+3000,plane,:,:])
+                        #crop in x
+                        stack=np.squeeze(stack)[:,89:718,100:750] # crop based on etl artifacts
+                        tifffile.imwrite(sbxfl[:-4]+f'_plane{plane+1:02d}_{nn+1:03d}.tif', stack.astype('uint16'))
             else:
-                print("\n ******14 tifs exists! Running suite2p... ******\n")
+                print("\n ******Tifs exists! Running suite2p... ******\n")
             #do suite2p after tifs are made
             # set your options for running
             ops = suite2p.default_ops() # populates ops with the default options
@@ -71,6 +72,9 @@ def main(**args):
             ops["delete_bin"]=params["delete_bin"] #False
             ops["move_bin"]=params["move_bin"]
             ops["save_mat"]=params["save_mat"]
+            ops["roidetect"]=False # do not detect crappy rois from suite2p
+            ops["keep_movie_raw"]=True # optimizing registration for low SNR
+            ops["two_step_registration"]=True
             
             # provide an h5 path in 'h5py' or a tiff path in 'data_path'
             # db overwrites any ops (allows for experiment specific settings)
@@ -89,47 +93,6 @@ def main(**args):
             opsEnd = suite2p.run_s2p(ops=ops, db=db)
             save_params(params, imagingflnm)
 
-    elif args["stepid"] == 2:
-        print(params["days_of_week"])
-        ########################WEEKLY CONCATENATED SUTIE2P RUN########################
-        dayflds = [os.path.join(params["datadir"],params["mouse_name"], str(day)) for day in params["days_of_week"]]
-        imgpths = [os.path.join(dayfld, xx) for dayfld in dayflds for xx in os.listdir(dayfld) if "000" in xx]
-        #assumes that these tifs have already been made in step 1
-        tifspths = [os.path.join(imgpth, xx) for imgpth in imgpths for xx in os.listdir(imgpth) if ".tif" in xx]
-        tifspths.sort(); print(tifspths)
-        #savedir
-        weekdir = os.path.join(params["datadir"],params["mouse_name"], "week"+str(params["week"])); makedir(weekdir)    
-        #do suite2p after tifs are made
-        # set your options for running
-        ops = suite2p.default_ops() # populates ops with the default options
-        #edit ops if needed, based on user input
-        ops["reg_tif"]=params["reg_tif"] 
-        ops["nplanes"]=params["nplanes"] 
-        ops["delete_bin"]=params["delete_bin"] #False
-        ops["move_bin"]=params["move_bin"]
-        ops["save_mat"]=params["save_mat"]
-
-        # provide an h5 path in 'h5py' or a tiff path in 'data_path'
-        # db overwrites any ops (allows for experiment specific settings)
-        db = {
-            'h5py': [], # a single h5 file path
-            'h5py_key': 'data',
-            'look_one_level_down': False, # whether to look in ALL subfolders when searching for tiffs
-            'data_path': imgpths, # a list of folders with tiffs 
-                                    # (or folder of folders with tiffs if look_one_level_down is True, or subfolders is not empty)
-                                                
-            'subfolders': [], # choose subfolders of 'data_path' to look in (optional)
-            'save_path0': weekdir
-        }
-
-        # run one experiment
-        opsEnd = suite2p.run_s2p(ops=ops, db=db)
-        save_params(params, weekdir)
-
-    elif args["stepid"] == 3:
-        #####################RUN WEEKLY CONCATENATED SUITE2P THRU CELL REG#####################
-        return False
-        #save_params(params, )
 
 def fill_params(mouse_name, day, datadir, reg_tif, nplanes, delete_bin,
                 move_bin, stepid, save_mat, days_of_week, week):
@@ -143,10 +106,6 @@ def fill_params(mouse_name, day, datadir, reg_tif, nplanes, delete_bin,
     params["datadir"]       = datadir           #main dir
     params["mouse_name"]    = mouse_name        #mouse name w/in main dir
     params["day"]           = day               #session no. w/in mouse name  
-    try: #TODO: fix error
-        params["days_of_week"]  = days_of_week[0]   #days to put together for analysis of that week
-    except:
-        print("\n No days of week specified...\n")
     params["week"]          = week              #week np.
     #suite2p params
     params["reg_tif"]       = ast.literal_eval(reg_tif)
