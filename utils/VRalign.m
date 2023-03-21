@@ -48,8 +48,12 @@ uforwardvel=-0.013*VR.ROE(scanstart:scanstop)./diff(VR.time(scanstart-1:scanstop
 uybinned=VR.ypos(scanstart:scanstop);   
 unumframes=length(scanstart:scanstop);
 uVRtimebinned = VR.time(scanstart:scanstop)- check_imaging_start_before-VR.time(scanstart);
-utrialnum = VR.trialNum(scanstart:scanstop);
-uchangeRewLoc = VR.changeRewLoc(scanstart:scanstop);
+try
+    utrialnum = VR.trialNum(scanstart:scanstop);
+    uchangeRewLoc = VR.changeRewLoc(scanstart:scanstop);
+catch
+    disp("multiple reward zone training..")
+end
 uchangeRewLoc(1) = VR.changeRewLoc(1);
 ulicks = VR.lick(scanstart:scanstop);
 ulickVoltage = VR.lickVoltage(scanstart:scanstop);
@@ -69,7 +73,11 @@ for newindx = 1:length(timedFF)
         rewards(newindx) = sum(urewards(find(uVRtimebinned<=after)));
         forwardvel(newindx) = mean(uforwardvel(find(uVRtimebinned<=after)));
         ybinned(newindx)= mean(uybinned(find(uVRtimebinned<=after)));
-        trialnum(newindx) = max(utrialnum(find(uVRtimebinned<=after)));
+        try
+            trialnum(newindx) = max(utrialnum(find(uVRtimebinned<=after)));
+            disp("multiple reward zone training..")
+        catch
+        end
         changeRewLoc(newindx) = uchangeRewLoc(newindx);
         licks(newindx) = sum(ulicks(find(uVRtimebinned<=after)))>0;
         lickVoltage(newindx) = mean(ulickVoltage(find(uVRtimebinned<=after)));
@@ -118,7 +126,11 @@ for newindx = 1:length(timedFF)
 
             else
                 ybinned(newindx) = mean(uybinned(find(uVRtimebinned>before & uVRtimebinned<=after)));
-                trialnum(newindx) = max(utrialnum(find(uVRtimebinned>before & uVRtimebinned<=after)));
+                try
+                    trialnum(newindx) = max(utrialnum(find(uVRtimebinned>before & uVRtimebinned<=after)));
+                catch
+                    disp("multiple reward zone training..")
+                end
             end
             forwardvel(newindx) = mean(uforwardvel(find(uVRtimebinned>before & uVRtimebinned<=after)));
             changeRewLoc(newindx) = sum(uchangeRewLoc(find(uVRtimebinned>before & uVRtimebinned<=after)));

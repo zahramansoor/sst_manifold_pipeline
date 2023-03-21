@@ -1,8 +1,9 @@
 %Zahra
 %run VR align
+%based on Zahra's pipeline folder structure
 
-mouse_name = "e200";
-days = [19];
+mouse_name = "e201";
+days = [19:21];
 src = "Z:\sstcre_imaging";
 % add function path
 addpath(fullfile(pwd, "utils"));
